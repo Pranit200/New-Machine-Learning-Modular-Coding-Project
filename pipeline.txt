@@ -1,0 +1,9 @@
+# define variable in constant file ->write code in configuration file to connect the code -> data ingestion
+
+# Data Transformation
+
+# define variable related to data transformation in constant file -> code to connect data - configuration file ->  data Transformation -> create helper function in utils file if required -> data transformation
+
+# Model Training
+
+#constant file -> configuration -> model training -> utils file(helper function)
