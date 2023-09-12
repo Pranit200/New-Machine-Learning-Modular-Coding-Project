@@ -12,7 +12,8 @@ REQUIREMENTS_FILE_NAME = "requirements.txt"
 HYPHEN_E_DOT = "-e ."
 # Requirements.txt file open
 # read
-#\n ""
+#In python if we define something on new line we use \n ""
+
 def get_requirements_list()->List[str]:
     with open(REQUIREMENTS_FILE_NAME) as requirement_file:
         requirement_list = requirement_file.readlines()

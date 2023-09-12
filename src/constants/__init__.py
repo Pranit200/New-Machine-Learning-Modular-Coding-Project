@@ -35,7 +35,7 @@ DATA_TRANFORMATION_DIR = "transformation"
 TRANSFROM_TRAIN_DIR_KEY = "train.csv"
 TRANSFROM_TEST_DIR_KEY = "test.csv"
 
-# artifact / data_transformation /(processor -> processor.pkl and featrue_engg.pkl) and (transfromation -> train.csv and test.csv)
+# artifact / data_transformation /(processor -> processor.pkl and feature_engg.pkl) and (transfromation -> train.csv and test.csv)
 
 # Model Training
 

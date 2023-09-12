@@ -12,17 +12,18 @@ def save_obj(file_path, obj):
         with open(file_path, "wb") as file_obj:
             pickle.dump(obj , file_obj)
     except Exception as e:
+        logging.info("Exception occur while saving the model")
         raise CustomException(e, sys)
 
 
-def evaluate_model(X_tain, y_train ,X_test ,y_test ,models):
+def evaluate_model(X_train, y_train ,X_test ,y_test ,models):
     try:
         report = {}
 
         for i in range(len(models)):
             model = list(models.values())[i]
 
-            model.fit(X_tain, y_train)
+            model.fit(X_train, y_train)
 
             y_test_pred = model.predict(X_test)
 
@@ -34,4 +35,16 @@ def evaluate_model(X_tain, y_train ,X_test ,y_test ,models):
 
 
     except Exception as e:
+        logging.info("Exception occur while evaluating the model")
+        raise CustomException(e,sys)
+
+
+
+def load_model(file_path):
+    try:
+        with open(file_path,"rb") as f:
+            return pickle.load(f)
+
+    except Exception as e:
+        logging.info("Exception occur while loading the model")
         raise CustomException(e,sys)

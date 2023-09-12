@@ -19,17 +19,21 @@ from src.config.configuration import PREPROCESSING_OBJ_FILE,TRANSFORM_TRAIN_FILE
 
 class Feature_Engineering(BaseEstimator, TransformerMixin):
     def __init__(self):
-        logging.info("**********************feature Engeering started*************************")
+        logging.info(f"\n{'*'*20} Feature Engneering Started {'*'*20}\n\n")
 
     def distance_numpy(self, df, lat1,lon1, lat2,lon2):
         p = np.pi/180
         a = 0.5 - np.cos((df[lat2]-df[lat1])*p)/2 + np.cos(df[lat1]*p) * np.cos(df[lat2]*p) * (1-np.cos((df[lon2]-df[lon1])*p))/2
-        df['distance'] = 12734 * np.arccos(np.sort(a))
+        df['distance'] = 12742 * np.arcsin(np.sqrt(a))
 
-    def transform_data(self, df):
+    def transform_data(self,df):
         try:
-            df.drop(['ID'],axis = 1, inplace = True)
 
+            df.drop(['ID'],axis=1,inplace=True) 
+            logging.info("dropping the Id column")
+            
+            
+            logging.info("Creating feature on latitude nad longitude")
             self.distance_numpy(df,'Restaurant_latitude','Restaurant_longitude',
                                 'Delivery_location_latitude','Delivery_location_longitude')
             
@@ -37,12 +41,15 @@ class Feature_Engineering(BaseEstimator, TransformerMixin):
                     'Delivery_location_latitude','Delivery_location_longitude','Order_Date','Time_Orderd','Time_Order_picked'],axis =1, inplace = True)
 
             logging.info("Dropping columns from our original dataset")
+            logging.info(f'Train Dataframe Head: \n{df.head().to_string()}')
 
             return df
 
-        
+
         except Exception as e:
-            raise CustomException(e,sys)
+            logging.info("Error in transforming data")
+            raise CustomException(e, sys) from e 
+        
     def fit(self, X, y=None):
         logging.info("Fitting the feature engineering steps")
         return self
@@ -69,14 +76,19 @@ class DataTransformation:
 
     def get_data_tranformation_obj(self):
         try:
+            logging.info('Data Transformation initiated')
+
+
+            # defining the ordinal data ranking
             Road_traffic_density = ['Low','Medium','High','Jam']
             Weather_conditions = ['Sunny','Cloudy','Fog','Sandstorms','Windy','Stormy']
 
+            # defining the categorical and numerical column
             categorical_columns = ['Type_of_order','Type_of_vehicle','Festival','City']
             ordinal_encoder = ['Road_traffic_density','Weather_conditions']
             numerical_column = ['Delivery_person_Age','Delivery_person_Ratings','Vehicle_condition','multiple_deliveries','distance']
 
-            logging.info("we will define the pipeline")
+            logging.info("we will define the pipeline of data transformation")
             # Numerical Pipeline
             numerical_pipeline = Pipeline(steps = [
                 ('impute', SimpleImputer(strategy = 'constant',fill_value=0)),
@@ -109,6 +121,7 @@ class DataTransformation:
             logging.info('Pipeline steps completed')
 
         except Exception as e:
+            logging.info("Error in data transformation")
             raise CustomException(e,sys)
 
     def get_feature_engineering_object(self):
@@ -117,7 +130,7 @@ class DataTransformation:
 
             return feature_engineering
         except Exception as e:
-            raise CustomException(e,sys)
+            raise CustomException(e,sys) from e 
         logging.info("FE Pipeline")
 
     def initiate_data_transformation(self, train_path, test_path):
@@ -125,19 +138,36 @@ class DataTransformation:
             train_df = pd.read_csv(train_path)
             test_df = pd.read_csv(test_path)
 
-            logging.info("Obatining FE steps object")
+            #logging.info('Read train and test data completed')
+            #logging.info(f'Train Dataframe Head : \n{train_df.head().to_string()}')
+            #logging.info(f'Test Dataframe Head  : \n{test_df.head().to_string()}')
+
+
+            
+
+
+# adding delivery city
+            #train_df['Delivery_city']=train_df['Delivery_person_ID'].str.split('RES',expand=True)[0]
+            #test_df['Delivery_city']=test_df['Delivery_person_ID'].str.split('RES',expand=True)[0]
+
+            logging.info(f"Obtaining feature engineering object.")
             fe_obj = self.get_feature_engineering_object()
 
+            logging.info(f"Applying feature engineering object on training dataframe and testing dataframe")
+            logging.info(">>>" * 20 + " Training data " + "<<<" * 20)
+            logging.info(f"Feature Enineering - Train Data ")
+
             train_df = fe_obj.fit_transform(train_df)
+            logging.info(">>>" * 20 + " Test data " + "<<<" * 20)
+            logging.info(f"Feature Enineering - Test Data ")
             test_df = fe_obj.transform(test_df)
 
             train_df.to_csv('train_data.csv')
             test_df.to_csv('test_data.csv')
-
+            logging.info(f"Saving csv to train_data and test_data.csv")
 
             processing_obj = self.get_data_tranformation_obj()
 
-            logging.info("obtaining data transformation steps object")
             target_columns_name = "Time_taken (min)"
             
             X_train = train_df.drop(columns = target_columns_name,axis =1)
@@ -146,10 +176,20 @@ class DataTransformation:
             X_test = test_df.drop(columns = target_columns_name,axis =1)
             y_test = test_df[target_columns_name]
 
+            logging.info(f"shape of {X_train.shape} and {X_test.shape}")
+            logging.info(f"shape of {y_train.shape} and {y_test.shape}")
+
+            # Transforming using preprocessor obj
 
             X_train = processing_obj.fit_transform(X_train)
             X_test = processing_obj.transform(X_test)
+            logging.info("Applying preprocessing object on training and testing datasets.")
+            logging.info(f"shape of {X_train.shape} and {X_test.shape}")
+            logging.info(f"shape of {y_train.shape} and {y_test.shape}")
             
+
+            logging.info("transformation completed")
+           
             logging.info("Now we will combine X_train and y_train")
 
            # train_arr = np.c_(X_train, np.array(y_train))
@@ -170,12 +210,18 @@ class DataTransformation:
 
             logging.info("File converted to csv format")
 
-            save_obj(file_path = self.data_transformation_config.processed_obj_file_path,obj = fe_obj)    
+            save_obj(file_path = self.data_transformation_config.processed_obj_file_path,obj = processing_obj)    
+           
+            logging.info("Preprocessor file saved")
+
+
             save_obj(file_path = self.data_transformation_config.feature_engg_obj_path,obj = fe_obj)
+            logging.info("Feature eng file saved")
 
             return(train_arr,test_arr,self.data_transformation_config.processed_obj_file_path)    
             logging.info("Sucessfully done data transformation")
         except Exception as e:
+            logging.info("error in data transformation")
             raise CustomException(e,sys)
 
 

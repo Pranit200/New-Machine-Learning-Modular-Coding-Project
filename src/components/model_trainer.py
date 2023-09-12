@@ -28,6 +28,7 @@ class ModelTrainer():
             X_train ,y_train ,X_test ,y_test = (train_arr[:, :-1], train_arr[:,-1],
                                                 test_arr[:, :-1], test_arr[:,-1]) 
 
+            logging.info("Spiltted Dependent and Independent Variable")
             models = { "XGBRegressor" : XGBRegressor(),
                        "DecisionTreeRegressor" : DecisionTreeRegressor(),
                        "GradientBoostingRegressor" : GradientBoostingRegressor(),
